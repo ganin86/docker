@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+    apache:
+        image: httpd:2.4.57
+        restart: always
+        volumes:
+            - /var/www/html:/var/www/html
+            - ./cfg/httpd.conf:/usr/local/apache2/conf/httpd.conf
+        depends_on:
+            - php
+
+    nginx:
+        image: nginx:1.25.1
+        restart: always
+        ports:
+            - 80:80
+        volumes:
+            - ./cfg/nginx.conf:/etc/nginx/nginx.conf
+        depends_on:
+            - apache
+    php:
+      image: php:7.4-fpm
+      restart: always
+      build:
+        dockerfile: ./docker/php
+      volumes:
+            - /var/www/html:/var/www/html
+            - ./cfg/php.ini:/usr/local/etc/php/conf.d/app.ini
+    rabbitmq:
+      image: rabbitmq:3.10.7-management
+      restart: always
+      environment:
+        - RABBITMQ_DEFAULT_USER=admin
+        - RABBITMQ_DEFAULT_PASS=ur#ahr[o3ee4Io?B2Aad
+      ports:
+        - 15672:15672              
