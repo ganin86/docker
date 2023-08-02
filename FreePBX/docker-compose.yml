@@ -1,0 +1,45 @@
+version: '3'
+
+networks:
+  izpbx:
+    driver: bridge
+
+services:
+  db:
+    image: docker.io/mariadb:10.6.14
+    container_name: izpbx-db
+    command: --sql-mode=ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+    restart: unless-stopped
+    env_file:
+    - .env
+    environment:
+    - TZ
+    - MYSQL_DATABASE
+    - MYSQL_USER
+    - MYSQL_PASSWORD
+    - MYSQL_ROOT_PASSWORD
+    volumes:
+    - ./data/db:/var/lib/mysql
+    networks:
+      izpbx:
+    ports:
+    - ${APP_PORT_MYSQL}:3306
+
+  izpbx:
+    image: izdock/izpbx-asterisk:0
+    container_name: izpbx
+    restart: unless-stopped
+    depends_on:
+    - db
+    env_file:
+    - .env
+    volumes:
+    - ./data/izpbx:/data
+    cap_add:
+    - NET_ADMIN
+    privileged: true
+    ulimits:
+      nofile:
+        soft: 8192
+        hard: 32768
+    network_mode: host
